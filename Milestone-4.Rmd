@@ -1,0 +1,114 @@
+---
+title: "Business Intelligence Project"
+author: "<Ayan Ahmed>"
+date: "<17th November>"
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: console
+---
+
+# Student Details
+
+|                                              |     |
+|----------------------------------------------|-----|
+| **Student ID Number**                        |127039 ... |
+| **Student Name**                             |Ayan Ahmed ... |
+| **BBIT 4.2 Group**                           | .C.. |
+
+#load dataset
+```{r}
+library(readr)
+loan_dataset <- read_csv("Data/loan_dataset.csv")
+View(loan_dataset)
+```
+
+#install packages 
+```{r}
+## mlbench ----
+if (require("mlbench")) {
+  require("mlbench")
+} else {
+  install.packages("mlbench", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## caret ----
+if (require("caret")) {
+  require("caret")
+} else {
+  install.packages("caret", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## caretEnsemble ----
+if (require("caretEnsemble")) {
+  require("caretEnsemble")
+} else {
+  install.packages("caretEnsemble", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## C50 ----
+if (require("C50")) {
+  require("C50")
+} else {
+  install.packages("C50", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## adabag ----
+if (require("adabag")) {
+  require("adabag")
+} else {
+  install.packages("adabag", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+```
+
+#Baggging ensemble method
+```{r}
+train_control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+seed <- 7
+metric <- "Accuracy"
+
+```
+
+#1.Bagged CART
+```{r}
+set.seed(seed)
+loan_dataset_model_bagged_cart <- train(loan_status ~ ., data = loan_dataset, method = "treebag",
+                               metric = metric,
+                               trControl = train_control)
+
+```
+
+#2.Random Forest
+```{r}
+set.seed(seed)
+loan_dataset_model_rf <- train(loan_status ~ ., data = loan_dataset, method = "rf",
+                      metric = metric, trControl = train_control)
+```
+
+#summary results of each algorithm
+```{r}
+bagging_results <-
+  resamples(list("Bagged Decision Tree" = loan_dataset_model_bagged_cart,
+                 "Random Forest" = loan_dataset_model_rf))
+```
+
+#total summary results of bagging
+```{r}
+summary(bagging_results)
+```
+
+#plot of the summary
+```{r}
+dotplot(bagging_results)
+```
+

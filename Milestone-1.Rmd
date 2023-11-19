@@ -1,0 +1,179 @@
+---
+title: "Business Intelligence Project"
+author: "<Ayan Ahmed>"
+date: "<17th November>"
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: console
+---
+
+# Student Details
+
+|                                              |     |
+|----------------------------------------------|-----|
+| **Student ID Number**                        |127039 ... |
+| **Student Name**                             |Ayan Ahmed ... |
+| **BBIT 4.2 Group**                           | .C.. |
+
+#Loading dataset 
+```{r}
+library(readr)
+loan_dataset <- read_csv("Data/loan_dataset.csv")
+View(loan_dataset)
+
+```
+
+#installing packages 
+```{r}
+if (!is.element("renv", installed.packages()[, 1])) {
+  install.packages("renv", dependencies = TRUE)
+}
+require("renv")
+renv::init()
+renv::restore()
+renv::init()
+
+
+if (!is.element("languageserver", installed.packages()[, 1])) {
+  install.packages("languageserver", dependencies = TRUE)
+}
+require("languageserver")
+
+
+
+if (!is.element("mlbench", installed.packages()[, 1])) {
+  install.packages("mlbench", dependencies = TRUE)
+}
+require("mlbench")
+```
+
+
+#preview data
+```{r}
+#preview dataset 
+dim(loan_dataset)
+#data types
+sapply(loan_dataset, class)
+```
+
+#measure of frequency
+```{r}
+loan_dataset_freq <- loan_dataset$education
+cbind(frequency = table(loan_dataset_freq),
+      percentage = prop.table(table(loan_dataset_freq)) * 100)
+```
+
+#measure of central tendency-mode
+```{r}
+
+loan_dataset_loan_amount_mode <- names(table(loan_dataset$loan_amount))[
+  which(table(loan_dataset$loan_amount) == max(table(loan_dataset$loan_amount)))
+]
+print(loan_dataset_loan_amount_mode)
+
+```
+
+#-sd
+```{r}
+sapply(loan_dataset[, 5:12], sd)
+```
+
+#variance 
+```{r}
+sapply(loan_dataset[, 5:12], var)
+```
+
+#kurtosis
+```{r}
+if (!is.element("e1071", installed.packages()[, 1])) {
+  install.packages("e1071", dependencies = TRUE)
+}
+require("e1071")
+
+sapply(loan_dataset[, 5:12],  kurtosis, type = 2)
+```
+
+#skewness
+```{r}
+sapply(loan_dataset[, 5:12],  skewness, type = 2)
+```
+
+#measure of relationship-covariance, correlation
+```{r}
+#covariance
+loan_dataset_cov <- cov(loan_dataset[, 5:12])
+View(loan_dataset_cov)
+
+#correlation 
+loan_dataset_cor <- cor(loan_dataset[, 5:12])
+View(loan_dataset_cor)
+
+```
+
+#measure of distribution-anova
+```{r}
+loan_dataset_one_way_anova <- aov(loan_term ~ loan_amount, data = loan_dataset)
+summary(loan_dataset_one_way_anova)
+
+```
+
+#visulaizations
+```{r}
+#loan term frequency
+loan_dataset_loan_term <- as.numeric(unlist(loan_dataset[, 7]))
+hist(loan_dataset_loan_term, main = names(loan_dataset)[7])
+
+boxplot(loan_dataset[, 7], main = names(loan_dataset)[7])
+boxplot(loan_dataset[, 8], main = names(loan_dataset)[8])
+boxplot(loan_dataset[, 9], main = names(loan_dataset)[9])
+boxplot(loan_dataset[, 10], main = names(loan_dataset)[10])
+
+par(mfrow = c(1, 2))
+for (i in 1:2) {
+  boxplot(loan_dataset[, i], main = names(loan_dataset)[i])
+}
+#loan final status 
+barplot(table(loan_dataset[, 13]), main = names(loan_dataset)[13])
+
+barplot(table(loan_dataset[, 3]), main = names(loan_dataset)[3])
+
+#missingness
+if (!is.element("Amelia", installed.packages()[, 1])) {
+  install.packages("Amelia", dependencies = TRUE)
+}
+require("Amelia")
+
+missmap(loan_dataset, col = c("black", "lightgreen"), legend = TRUE)
+
+if (!is.element("corrplot", installed.packages()[, 1])) {
+  install.packages("corrplot", dependencies = TRUE)
+}
+require("corrplot")
+
+corrplot(cor(loan_dataset[, 5:12]), method = "circle")
+
+if (!is.element("ggcorrplot", installed.packages()[, 1])) {
+  install.packages("ggcorrplot", dependencies = TRUE)
+}
+require("ggcorrplot")
+
+ggcorrplot(cor(loan_dataset[, 5:12]))
+```
+
+#multivariate visualizations 
+```{r}
+if (!is.element("caret", installed.packages()[, 1])) {
+  install.packages("caret", dependencies = TRUE)
+}
+require("caret")
+
+featurePlot(x = loan_dataset[, 1:4], y = loan_dataset[, 12], plot = "box")
+```
+
+

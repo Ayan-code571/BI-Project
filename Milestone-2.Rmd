@@ -1,0 +1,153 @@
+---
+title: "Business Intelligence Project"
+author: "<Ayan Ahmed>"
+date: "<17th November>"
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: console
+---
+
+# Student Details
+
+|                                              |     |
+|----------------------------------------------|-----|
+| **Student ID Number**                        |127039 ... |
+| **Student Name**                             |Ayan Ahmed ... |
+| **BBIT 4.2 Group**                           | .C.. |
+
+
+#load dataset
+```{r}
+library(readr)
+loan_dataset <- read_csv("Data/loan_dataset.csv")
+View(loan_dataset)
+```
+
+#install packages 
+```{r}
+if (!is.element("languageserver", installed.packages()[, 1])) {
+  install.packages("languageserver", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+require("languageserver")
+
+
+
+if (!is.element("NHANES", installed.packages()[, 1])) {
+  install.packages("NHANES", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+require("NHANES")
+
+## dplyr ----
+if (!is.element("dplyr", installed.packages()[, 1])) {
+  install.packages("dplyr", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+require("dplyr")
+
+if (!is.element("naniar", installed.packages()[, 1])) {
+  install.packages("naniar", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+require("naniar")
+```
+
+#create subset variable 
+```{r}
+loan_dataset <- loan_dataset %>%
+  select(loan_id, education, loan_amount, loan_term, self_employed, income_annum, cibil_score,
+         no_of_dependents, residential_assets_value, commercial_assets_value, luxury_assets_value, bank_asset_value, loan_status)
+
+```
+
+#choose random variables to test for missing data 
+```{r}
+rand_ind <- sample(seq_len(nrow(loan_dataset)), 4269)
+loan_dataset <- loan_dataset[rand_ind, ]
+
+```
+
+#confirm missing data
+```{r}
+any_na(loan_dataset)
+```
+
+#Data transformation-packages 
+```{r}
+if (require("mlbench")) {
+  require("mlbench")
+} else {
+  install.packages("mlbench", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## readr ----
+if (require("readr")) {
+  require("readr")
+} else {
+  install.packages("readr", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## e1071 ----
+if (require("e1071")) {
+  require("e1071")
+} else {
+  install.packages("e1071", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## factoextra ----
+if (require("factoextra")) {
+  require("factoextra")
+} else {
+  install.packages("factoextra", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## FactoMineR ----
+if (require("FactoMineR")) {
+  require("FactoMineR")
+} else {
+  install.packages("FactoMineR", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+```
+
+#data before sacle basic data transformation
+```{r}
+if (!is.element("caret", installed.packages()[, 1])) {
+  install.packages("caret", dependencies = TRUE)
+}
+require("caret")
+
+summary(loan_dataset)
+
+loan_dataset_loan_status <- as.numeric(unlist(loan_dataset[, 4]))
+hist(loan_dataset_loan_status, main = names(loan_dataset)[4])
+
+model_of_the_transform <- preProcess(loan_dataset, method = c("scale"))
+print(model_of_the_transform)
+loan_dataset_scale_transform <- predict(model_of_the_transform, loan_dataset)
+
+```
+
+
+
+
+#data after scale basic data transformation
+```{r}
+summary(loan_dataset_scale_transform)
+loan_dataset_loan_status <- as.numeric(unlist(loan_dataset_scale_transform[, 4]))
+hist(loan_dataset_loan_status, main = names(loan_dataset_scale_transform)[4])
+
+```
+
+

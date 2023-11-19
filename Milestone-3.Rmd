@@ -1,0 +1,166 @@
+---
+title: "Business Intelligence Project"
+author: "<Ayan Ahmed>"
+date: "<17th November>"
+output:
+  github_document: 
+    toc: yes
+    toc_depth: 4
+    fig_width: 6
+    fig_height: 4
+    df_print: default
+editor_options:
+  chunk_output_type: console
+---
+
+# Student Details
+
+|                                              |     |
+|----------------------------------------------|-----|
+| **Student ID Number**                        |127039 ... |
+| **Student Name**                             |Ayan Ahmed ... |
+| **BBIT 4.2 Group**                           | .C.. |
+
+#load dataset
+```{r}
+library(readr)
+loan_dataset <- read_csv("Data/loan_dataset.csv")
+View(loan_dataset)
+
+```
+
+
+#install packages 
+```{r}
+if (require("pROC")) {
+  require("pROC")
+} else {
+  install.packages("pROC", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+
+## dplyr ----
+if (require("dplyr")) {
+  require("dplyr")
+} else {
+  install.packages("dplyr", dependencies = TRUE,
+                   repos = "https://cloud.r-project.org")
+}
+```
+
+#check data frequency
+```{r}
+
+loan_dataset_freq <- loan_dataset$loan_status
+cbind(frequency =
+        table(loan_dataset_freq),
+      percentage = prop.table(table(loan_dataset_freq)) * 100)
+```
+
+
+#split the data
+```{r}
+if (!is.element("caret", installed.packages()[, 1])) {
+  install.packages("caret", dependencies = TRUE)
+}
+require("caret")
+train_index <- createDataPartition(loan_dataset$loan_status,
+                                   p = 0.75,
+                                   list = FALSE)
+loan_dataset_train <- loan_dataset[train_index, ]
+loan_dataset_test <- loan_dataset[-train_index, ]
+
+```
+
+#train the model
+```{r}
+train_control <- trainControl(method = "cv", number = 13)
+
+```
+
+
+#accuracy and kappa
+```{r}
+set.seed(7)
+loan_dataset_model_glm <-
+  train(loan_status ~ ., data = loan_dataset_train, method = "glm",
+        metric = "Accuracy", trControl = train_control)
+```
+
+#print model performance
+```{r}
+print(loan_dataset_model_glm)
+```
+
+
+#applying 5-fold cross validation resampling method
+```{r}
+train_control <- trainControl(method = "cv", number = 13)
+loan_dataset_caret_model_rpart <- train(loan_status ~ ., data = loan_dataset,
+                                    method = "rpart", metric = "Accuracy",
+                                    trControl = train_control)
+
+```
+
+#print the model 
+```{r}
+print(loan_dataset_caret_model_rpart)
+```
+
+#predictions 
+```{r}
+predictions <- predict(loan_dataset_caret_model_rpart,
+                       loan_dataset_test[, 1:13],
+                       type = "raw")
+
+```
+
+#model performance 
+```{r}
+table(predictions, loan_dataset_test$loan_status)
+```
+
+#comparing model performance - LDA,CART ,KNN
+```{r}
+train_control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+```
+
+#LDA
+```{r}
+set.seed(7)
+loan_dataset_model_lda <- train(loan_status ~ ., data = loan_dataset,
+                            method = "lda", trControl = train_control)
+```
+
+#CART
+```{r}
+set.seed(7)
+loan_dataset_model_cart <- train(loan_status ~ ., data = loan_dataset,
+                             method = "rpart", trControl = train_control)
+```
+
+#KNN
+```{r}
+set.seed(7)
+loan_dataset_model_knn <- train(loan_status ~ ., data = loan_dataset,
+                            method = "knn", trControl = train_control)
+```
+
+#call resamples functions 
+```{r}
+results <- resamples(list(LDA = loan_dataset_model_lda, CART = loan_dataset_model_cart,
+                          KNN = loan_dataset_model_knn))
+                         
+```
+
+#results of the resample functions 
+```{r}
+summary(results)
+```
+
+#box plot of the results
+```{r}
+scales <- list(x = list(relation = "free"), y = list(relation = "free"))
+bwplot(results, scales = scales)
+```
+
